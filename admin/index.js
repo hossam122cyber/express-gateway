@@ -1,19 +1,27 @@
-// TODO: this is EG admin client; internal utility
-module.exports = function (options) {
-  const client = require('./client')(options);
+// api/index.js - API route for Vercel
 
-  return {
-    users: require('./users')(client),
-    apps: require('./apps')(client),
-    scopes: require('./scopes')(client),
-    credentials: require('./credentials')(client),
-    tokens: require('./tokens')(client),
-    config: {
-      policies: require('./config/policies')(client),
-      pipelines: require('./config/pipelines')(client),
-      apiEndpoints: require('./config/api-endpoints')(client),
-      serviceEndpoints: require('./config/service-endpoints')(client),
-      schemas: require('./config/schemas')(client)
-    }
-  };
+const clientFactory = require("./client");
+
+const users = require("./users");
+const apps = require("./apps");
+const scopes = require("./scopes");
+const credentials = require("./credentials");
+const tokens = require("./tokens");
+
+module.exports = async function handler(req, res) {
+  const client = clientFactory({}); // مرر options لو محتاج
+  try {
+    const data = {
+      users: await users(client).list(),
+      apps: await apps(client).list(),
+      scopes: await scopes(client).list(),
+      credentials: await credentials(client).list(),
+      tokens: await tokens(client).list(),
+    };
+
+    res.status(200).json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error", details: err.message });
+  }
 };
